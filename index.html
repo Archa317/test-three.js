@@ -16,7 +16,6 @@
     var color = new THREE.Color();
 
     init();
-    animate();
 
     function init() {
         scene = new THREE.Scene();
@@ -47,35 +46,39 @@
         videoElement.addEventListener('play', function() {
             canvas.width = videoElement.videoWidth;
             canvas.height = videoElement.videoHeight;
+            animate();  // Move animate() call here.
         });
     }
 
     function animate() {
-        requestAnimationFrame(animate);
-        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        var frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-        var r = 0, g = 0, b = 0;
-        for (var i = 0; i < frame.length; i += 4) {
-            r += frame[i];
-            g += frame[i+1];
-            b += frame[i+2];
-        }
-        r /= (canvas.width * canvas.height);
-        g /= (canvas.width * canvas.height);
-        b /= (canvas.width * canvas.height);
-        color.setRGB(r/255, g/255, b/255);
-        sphere.material.color = color;
+        if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) { // Only run when video is ready to be drawn.
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            var frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            var r = 0, g = 0, b = 0;
+            for (var i = 0; i < frame.length; i += 4) {
+                r += frame[i];
+                g += frame[i+1];
+                b += frame[i+2];
+            }
+            r /= (canvas.width * canvas.height);
+            g /= (canvas.width * canvas.height);
+            b /= (canvas.width * canvas.height);
+            color.setRGB(r/255, g/255, b/255);
+            sphere.material.color = color;
 
-        if (clock.getElapsedTime() > 30) {
-            scene.remove(sphere);
-            clock.stop();
-            clock.elapsedTime = 0;
-            document.getElementById('videoUpload').value = '';
-            var geometry = new THREE.SphereGeometry(1, 32, 32);
-            var material = new THREE.MeshBasicMaterial({color: 0xffffff});
-            sphere = new THREE.Mesh(geometry, material);
-            scene.add(sphere);
+            if (clock.getElapsedTime() > 30) {
+                scene.remove(sphere);
+                clock.stop();
+                clock.elapsedTime = 0;
+                document.getElementById('videoUpload').value = '';
+                var geometry = new THREE.SphereGeometry(1, 32, 32);
+                var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+                sphere = new THREE.Mesh(geometry, material);
+                scene.add(sphere);
+            }
         }
+
+        requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
 </script>
